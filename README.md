@@ -1,83 +1,282 @@
-# AWS Nova Lambda Debugger (Lambda Lens)
+# LambdaLens — AI-Powered AWS Lambda Debugger
 
-Analyze AWS Lambda CloudWatch logs using **AWS Bedrock Nova 2 Lite**. Fetches function metadata and recent logs, runs an AI-powered diagnosis, and opens an HTML report in your browser.
+> Stop staring at CloudWatch logs. Let AI tell you exactly what went wrong and how to fix it.
 
-## What it does
+LambdaLens is a CLI tool that automatically fetches your AWS Lambda CloudWatch logs, sends them to **Amazon Nova 2 Lite** via Amazon Bedrock for analysis, and opens a beautiful diagnostic report in your browser — all with a single command.
 
-- **Fetches** Lambda configuration and CloudWatch log streams (configurable time window)
-- **Analyzes** logs with Nova 2 Lite and returns a structured diagnosis (summary, health, errors with causes and fixes)
-- **Serves** an HTML report at `http://localhost:8000/report` with the diagnosis and metadata
+Built for the **Amazon Nova AI Hackathon** 
+
+---
+
+## Demo
+
+```
+$ lambda-debug --function my-api-handler --region us-east-2 --hours 24
+
+⚡ LambdaLens — AI-Powered Lambda Debugger
+Analyzing function: my-api-handler in us-east-2
+
+Fetching Lambda logs and metadata...
+✓ Lambda metadata fetched successfully
+✓ Found 4 log streams in the last 24 hours
+✓ Fetched 142 log events successfully
+
+Analyzing logs with Amazon Nova 2 Lite...
+✓ Analysis complete
+
+Opening report in browser...
+```
+
+Your browser opens automatically at `http://localhost:8000/report` showing a full diagnostic report.
+
+---
+
+## Features
+
+- **One command debugging** — point it at any Lambda function and get instant AI-powered diagnosis
+- **Powered by Amazon Nova 2 Lite** — advanced reasoning model identifies root causes, not just error names
+- **Beautiful visual report** — dark-themed dashboard with color-coded severity cards opens automatically in your browser
+- **Specific actionable fixes** — not generic advice, but exact steps tailored to your function's configuration and actual log lines
+- **Zero extra setup** — uses your existing AWS credentials, no API keys or logins needed
+- **Privacy first** — your logs never leave your machine except to AWS APIs you already use
+- **Works with any Lambda** — runtime agnostic, works with Python, Node.js, Java, Go, and more
+
+---
+
+## Architecture
+
+```
+lambda-debug CLI (Click)
+        ↓
+core/fetcher.py
+  → boto3 fetches Lambda metadata from AWS Lambda API
+  → boto3 fetches CloudWatch log streams + events
+        ↓
+core/analyzer.py
+  → Builds structured prompt with function context + logs
+  → Calls Amazon Nova 2 Lite via Amazon Bedrock
+  → Returns structured JSON diagnosis
+        ↓
+server/app.py
+  → FastAPI serves report at localhost:8000
+  → Jinja2 renders diagnosis into HTML
+  → Browser opens automatically
+        ↓
+server/templates/report.html
+  → Dark themed dashboard
+  → Color coded error cards
+  → Collapsible log lines
+```
+
+---
 
 ## Prerequisites
 
-- **Python 3.9+**
-- **AWS credentials** configured (e.g. `~/.aws/credentials` or env vars)
-- **AWS Bedrock** access in your account (Nova 2 Lite model)
-- Lambda and CloudWatch Logs in the same region you use below
+- Python 3.10+
+- AWS CLI installed and configured (`aws configure`)
+- AWS account with access to:
+  - AWS Lambda
+  - Amazon CloudWatch Logs
+  - Amazon Bedrock (Nova 2 Lite model)
 
-## Setup
+---
 
-1. **Clone and enter the project**
-   ```bash
-   cd aws_nova_project
-   ```
+## Installation
 
-2. **Create and activate a virtual environment**
-   ```bash
-   python3 -m venv venv
-   source venv/bin/activate   # Windows: venv\Scripts\activate
-   ```
+**1. Clone the repository**
 
-3. **Install dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
+```bash
+git clone https://github.com/prithishsamanta/Lambda_Lens.git
+cd Lambda_Lens
+```
 
-4. **Environment variables** (optional; create a `.env` in the project root)
-   - `AWS_REGION` – e.g. `us-east-2` (used by the analyzer/Bedrock client; fetcher uses the region you pass in code)
+**2. Create and activate a virtual environment**
+
+```bash
+python -m venv venv
+
+# Mac/Linux
+source venv/bin/activate
+
+# Windows
+venv\Scripts\activate
+```
+
+**3. Install the package**
+
+```bash
+pip install -e .
+```
+
+This installs all dependencies and registers the `lambda-debug` command globally in your terminal.
+
+**4. Configure AWS credentials (if not already done)**
+
+```bash
+aws configure
+```
+
+You'll need:
+- AWS Access Key ID
+- AWS Secret Access Key
+- Default region (e.g. `us-east-2`)
+
+---
 
 ## Usage
 
-Edit `test_app.py` to set your Lambda function name, region, and lookback window:
-
-```python
-data = fetch_all_data(
-    function_name="your-lambda-function-name",
-    region="us-east-2",
-    hours=24
-)
-```
-
-Then run:
+### Basic usage
 
 ```bash
-python test_app.py
+lambda-debug --function YOUR_FUNCTION_NAME
 ```
 
-The script will:
+### With all options
 
-1. Fetch Lambda metadata and recent CloudWatch logs
-2. Send them to Nova 2 Lite for analysis
-3. Print the diagnosis to the terminal
-4. Start a local server and open the report in your browser at `http://localhost:8000/report`
+```bash
+lambda-debug --function YOUR_FUNCTION_NAME --region us-east-2 --hours 24
+```
 
-## Project structure
+### Options
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `--function` | Lambda function name (required) | — |
+| `--region` | AWS region | `us-east-2` |
+| `--hours` | How many hours of logs to analyze | `24` |
+
+### Examples
+
+```bash
+# Analyze a function in the last 24 hours
+lambda-debug --function my-api-handler
+
+# Analyze a function in a specific region
+lambda-debug --function payment-processor --region ap-south-1
+
+# Analyze only the last 6 hours of logs
+lambda-debug --function data-pipeline --region us-west-2 --hours 6
+```
+
+---
+
+## What the Report Shows
+
+The report opens automatically in your browser and includes:
+
+**Header**
+- Function name and AWS region
+- Runtime version
+- Live health status badge (Healthy / Degraded / Critical)
+
+**AI Diagnosis Summary**
+- One sentence overall assessment from Nova 2 Lite
+- Total issues found, critical count, warning count
+
+**Function Configuration**
+- Memory allocation, timeout setting, handler, last modified date
+
+**Error Cards** (one per detected issue)
+- Error type with severity badge (Critical / Warning / Info)
+- **What happened** — plain English explanation
+- **Root cause** — why it happened
+- **How to fix** — specific actionable steps tailored to your function
+- **Relevant log lines** — collapsible section showing exact log lines that triggered the error
+
+---
+
+## What LambdaLens Can Detect
+
+- Runtime exceptions (ZeroDivisionError, TypeError, NameError, etc.)
+- Function timeouts with root cause analysis
+- IAM permission errors with exact missing permissions
+- Memory limit issues and optimization suggestions
+- Cold start performance problems
+- VPC connectivity failures
+- Dependency and import errors
+- Custom application errors in logs
+
+---
+
+## Tech Stack
+
+| Component | Technology |
+|-----------|------------|
+| CLI | Python + Click |
+| AWS Integration | boto3 |
+| AI Model | Amazon Nova 2 Lite |
+| AI Platform | Amazon Bedrock |
+| Backend Server | FastAPI + Uvicorn |
+| Templating | Jinja2 |
+| Frontend | Tailwind CSS + Alpine.js |
+| Terminal Output | Rich |
+
+---
+
+## Project Structure
 
 ```
-aws_nova_project/
+lambda-debug/
+├── cli/
+│   ├── __init__.py
+│   └── main.py              # CLI entry point (lambda-debug command)
 ├── core/
-│   ├── fetcher.py   # Lambda metadata + CloudWatch log fetching (boto3)
-│   └── analyzer.py # Log analysis via Bedrock Nova 2 Lite
+│   ├── __init__.py
+│   ├── fetcher.py           # CloudWatch log fetching via boto3
+│   └── analyzer.py          # Nova 2 Lite analysis via Bedrock
 ├── server/
-│   ├── app.py       # FastAPI app; serves /report and opens browser
+│   ├── __init__.py
+│   ├── app.py               # FastAPI local server
 │   └── templates/
-│       └── report.html
-├── test_app.py      # Main entry: fetch → analyze → print → start server
-├── test_analyzer.py # Fetch + analyze only (no server)
-├── requirements.txt
+│       └── report.html      # Visual diagnostic report
+├── setup.py                 # Package configuration
+├── requirements.txt         # Dependencies
+├── .env                     # Environment variables (not committed)
 └── README.md
 ```
 
+---
+
+## Privacy & Security
+
+- **No data storage** — logs are fetched, analyzed, and displayed in memory only
+- **No external transmission** — your logs only go to AWS APIs (Lambda, CloudWatch, Bedrock) that you already use
+- **Uses existing credentials** — no new API keys or accounts needed
+- **Local report** — the report is served locally on your machine only, never hosted externally
+- **Credentials never touched** — LambdaLens uses boto3's standard credential chain, never reads or stores your AWS keys directly
+
+---
+
+## Contributing
+
+Contributions are welcome. Please open an issue first to discuss what you'd like to change.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+---
+
 ## License
 
-MIT License
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+
+---
+
+## Author
+
+**Prithish Samanta**
+
+Built with Amazon Nova 2 Lite for the Amazon Nova AI Hackathon.
+
+---
+
+## Acknowledgements
+
+- [Amazon Nova](https://aws.amazon.com/ai/nova/) — for the powerful reasoning model
+- [Amazon Bedrock](https://aws.amazon.com/bedrock/) — for the managed AI infrastructure
+- [boto3](https://boto3.amazonaws.com/v1/documentation/api/latest/index.html) — for the excellent AWS SDK
+- [FastAPI](https://fastapi.tiangolo.com/) — for the lightweight local server
+- [Rich](https://rich.readthedocs.io/) — for the beautiful terminal output
