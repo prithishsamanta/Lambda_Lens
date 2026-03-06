@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lambda Lens — Diagnostic Report</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #080c14;
+            --bg-secondary: #0d1421;
+            --bg-card: #111827;
+            --bg-card-hover: #151e2d;
+            --border: #1e2d42;
+            --border-bright: #2a3f5a;
+            --text-primary: #e2eaf5;
+            --text-secondary: #7a92b0;
+            --text-muted: #4a6080;
+            --accent-blue: #3b82f6;
+            --accent-blue-dim: #1d4ed8;
+            --accent-cyan: #06b6d4;
+            --critical: #ef4444;
+            --critical-dim: #7f1d1d;
+            --critical-bg: #1a0a0a;
+            --warning: #f59e0b;
+            --warning-dim: #78350f;
+            --warning-bg: #1a1200;
+            --info: #3b82f6;
+            --info-dim: #1e3a5f;
+            --info-bg: #090f1a;
+            --healthy: #10b981;
+            --degraded: #f59e0b;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'Syne', sans-serif;
+            min-height: 100vh;
+            
+            background-image:
+                radial-gradient(ellipse 80% 50% at 50% -20%, rgba(59,130,246,0.08) 0%, transparent 60%),
+                radial-gradient(ellipse 40% 30% at 80% 80%, rgba(6,182,212,0.04) 0%, transparent 50%);
+        }
+
+        .mono { font-family: 'JetBrains Mono', monospace; }
+
+        /* Navbar */
+        .navbar {
+            background: rgba(13,20,33,0.95);
+            border-bottom: 1px solid var(--border);
+            backdrop-filter: blur(12px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            transition: border-color 0.2s ease;
+        }
+        .card:hover { border-color: var(--border-bright); }
+
+        /* Health badge */
+        .badge-critical {
+            background: var(--critical-dim);
+            color: var(--critical);
+            border: 1px solid rgba(239,68,68,0.3);
+        }
+        .badge-degraded {
+            background: var(--warning-dim);
+            color: var(--warning);
+            border: 1px solid rgba(245,158,11,0.3);
+        }
+        .badge-healthy {
+            background: rgba(16,185,129,0.15);
+            color: var(--healthy);
+            border: 1px solid rgba(16,185,129,0.3);
+        }
+        .badge-warning {
+            background: var(--warning-dim);
+            color: var(--warning);
+            border: 1px solid rgba(245,158,11,0.3);
+        }
+        .badge-info {
+            background: var(--info-dim);
+            color: var(--info);
+            border: 1px solid rgba(59,130,246,0.3);
+        }
+
+        /* Error cards */
+        .error-card-critical {
+            border-left: 3px solid var(--critical);
+            background: linear-gradient(135deg, var(--critical-bg) 0%, var(--bg-card) 40%);
+        }
+        .error-card-warning {
+            border-left: 3px solid var(--warning);
+            background: linear-gradient(135deg, var(--warning-bg) 0%, var(--bg-card) 40%);
+        }
+        .error-card-info {
+            border-left: 3px solid var(--info);
+            background: linear-gradient(135deg, var(--info-bg) 0%, var(--bg-card) 40%);
+        }
+
+        /* Fix section highlight */
+        .fix-section {
+            background: rgba(59,130,246,0.06);
+            border: 1px solid rgba(59,130,246,0.15);
+            border-radius: 8px;
+        }
+
+        /* Log lines */
+        .log-block {
+            background: #060a10;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            line-height: 1.6;
+            color: #8fb3d9;
+        }
+
+        /* Stats */
+        .stat-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+        }
+
+        /* Divider */
+        .section-divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--border), transparent);
+        }
+
+        /* Pulse dot */
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        .pulse-critical { background: var(--critical); box-shadow: 0 0 0 0 rgba(239,68,68,0.4); }
+        .pulse-healthy { background: var(--healthy); box-shadow: 0 0 0 0 rgba(16,185,129,0.4); }
+        .pulse-degraded { background: var(--warning); box-shadow: 0 0 0 0 rgba(245,158,11,0.4); }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(239,68,68,0.4); }
+            70% { box-shadow: 0 0 0 6px rgba(239,68,68,0); }
+            100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); }
+        }
+
+        /* Fade in animation */
+        .fade-in {
+            animation: fadeIn 0.4s ease forwards;
+            opacity: 0;
+        }
+        @keyframes fadeIn {
+            to { opacity: 1; transform: translateY(0); }
+            from { opacity: 0; transform: translateY(8px); }
+        }
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
+        .delay-4 { animation-delay: 0.4s; }
+
+        /* Toggle button */
+        .toggle-btn {
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            transition: color 0.2s;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 0;
+        }
+        .toggle-btn:hover { color: var(--accent-blue); }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-primary); }
+        ::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 3px; }
+    </style>
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar px-6 py-4">
+        <div class="max-w-5xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <!-- Logo -->
+                <div class="flex items-center gap-2">
+                    <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                        <rect width="28" height="28" rx="6" fill="rgba(59,130,246,0.15)"/>
+                        <path d="M7 14L11 10L15 14L19 8" stroke="#3b82f6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="19" cy="8" r="2" fill="#06b6d4"/>
+                        <path d="M7 20h14" stroke="#1e2d42" stroke-width="1" stroke-linecap="round"/>
+                    </svg>
+                    <span class="text-base font-bold tracking-tight" style="color: var(--text-primary);">Lambda<span style="color: var(--accent-cyan);">Lens</span></span>
+                </div>
+
+                <div style="width:1px; height:20px; background: var(--border);"></div>
+
+                <!-- Function name -->
+                <div class="flex items-center gap-2">
+                    <span class="mono text-xs" style="color: var(--text-muted);">fn://</span>
+                    <span class="mono text-sm font-medium" style="color: var(--text-primary);">{{ metadata.function_name }}</span>
+                </div>
+
+                <!-- Region -->
+                <div class="mono text-xs px-2 py-1 rounded" style="background: var(--bg-secondary); color: var(--text-muted); border: 1px solid var(--border);">
+                    {{ metadata.region }}
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <!-- Runtime -->
+                <span class="mono text-xs" style="color: var(--text-muted);">{{ metadata.runtime }}</span>
+
+                <!-- Health badge -->
+                {% if data.overall_health == 'critical' %}
+                <div class="flex items-center gap-2 px-3 py-1.5 rounded-full badge-critical">
+                    <div class="pulse-dot pulse-critical"></div>
+                    <span class="mono text-xs font-bold uppercase tracking-wider">Critical</span>
+                </div>
+                {% elif data.overall_health == 'degraded' %}
+                <div class="flex items-center gap-2 px-3 py-1.5 rounded-full badge-degraded">
+                    <div class="pulse-dot pulse-degraded"></div>
+                    <span class="mono text-xs font-bold uppercase tracking-wider">Degraded</span>
+                </div>
+                {% else %}
+                <div class="flex items-center gap-2 px-3 py-1.5 rounded-full badge-healthy">
+                    <div class="pulse-dot pulse-healthy"></div>
+                    <span class="mono text-xs font-bold uppercase tracking-wider">Healthy</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="max-w-5xl mx-auto px-6 py-8">
+
+        <!-- SUMMARY SECTION -->
+        <div class="card p-6 mb-6 fade-in">
+            <div class="flex items-start gap-4">
+                <div class="mt-1 flex-shrink-0">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <circle cx="10" cy="10" r="9" stroke="#3b82f6" stroke-width="1.5"/>
+                        <path d="M10 6v4M10 14h.01" stroke="#3b82f6" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <div class="flex-1">
+                    <p class="text-xs uppercase tracking-widest mb-2 font-semibold" style="color: var(--text-muted);">AI Diagnosis Summary</p>
+                    <p class="text-base leading-relaxed" style="color: var(--text-primary);">{{ data.summary }}</p>
+                </div>
+            </div>
+
+            <div class="section-divider my-5"></div>
+
+            <!-- Stats row -->
+            <div class="grid grid-cols-3 gap-4">
+                <div class="stat-card p-4 text-center">
+                    <div class="mono text-2xl font-bold mb-1" style="color: var(--accent-blue);">{{ data.errors | length }}</div>
+                    <div class="text-xs" style="color: var(--text-muted);">Issues Found</div>
+                </div>
+                <div class="stat-card p-4 text-center">
+                    <div class="mono text-2xl font-bold mb-1" style="color: var(--critical);">
+                        {% set critical_count = [] %}
+                        {% for e in data.errors %}{% if e.severity == 'critical' %}{% set _ = critical_count.append(1) %}{% endif %}{% endfor %}
+                        {{ critical_count | length }}
+                    </div>
+                    <div class="text-xs" style="color: var(--text-muted);">Critical</div>
+                </div>
+                <div class="stat-card p-4 text-center">
+                    <div class="mono text-2xl font-bold mb-1" style="color: var(--warning);">
+                        {% set warning_count = [] %}
+                        {% for e in data.errors %}{% if e.severity == 'warning' %}{% set _ = warning_count.append(1) %}{% endif %}{% endfor %}
+                        {{ warning_count | length }}
+                    </div>
+                    <div class="text-xs" style="color: var(--text-muted);">Warnings</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FUNCTION METADATA -->
+        <div class="card p-5 mb-6 fade-in delay-1">
+            <p class="text-xs uppercase tracking-widest mb-4 font-semibold" style="color: var(--text-muted);">Function Configuration</p>
+            <div class="grid grid-cols-2 gap-x-8 gap-y-3 md:grid-cols-4">
+                <div>
+                    <div class="text-xs mb-1" style="color: var(--text-muted);">Memory</div>
+                    <div class="mono text-sm font-medium" style="color: var(--text-primary);">{{ metadata.memory }} MB</div>
+                </div>
+                <div>
+                    <div class="text-xs mb-1" style="color: var(--text-muted);">Timeout</div>
+                    <div class="mono text-sm font-medium" style="color: var(--text-primary);">{{ metadata.timeout }}s</div>
+                </div>
+                <div class="overflow-hidden">
+                    <div class="text-xs mb-1" style="color: var(--text-muted);">Handler</div>
+                    <div class="mono text-sm font-medium truncate" style="color: var(--text-primary);" title="{{ metadata.handler }}">{{ metadata.handler }}</div>
+                </div>
+                <div>
+                    <div class="text-xs mb-1" style="color: var(--text-muted);">Last Modified</div>
+                    <div class="mono text-sm font-medium" style="color: var(--text-primary);">{{ metadata.last_modified[:10] }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ERRORS SECTION -->
+        <div class="mb-3 fade-in delay-2">
+            <p class="text-xs uppercase tracking-widest font-semibold" style="color: var(--text-muted);">Detected Issues</p>
+        </div>
+
+        {% for error in data.errors %}
+        <div class="card mb-4 overflow-hidden fade-in delay-{{ loop.index }}"
+             {% if error.severity == 'critical' %}style="border-left: 3px solid var(--critical); background: linear-gradient(135deg, var(--critical-bg) 0%, var(--bg-card) 40%);"
+             {% elif error.severity == 'warning' %}style="border-left: 3px solid var(--warning); background: linear-gradient(135deg, var(--warning-bg) 0%, var(--bg-card) 40%);"
+             {% else %}style="border-left: 3px solid var(--info); background: linear-gradient(135deg, var(--info-bg) 0%, var(--bg-card) 40%);"
+             {% endif %}
+             x-data="{ open: false }">
+
+            <!-- Error card header -->
+            <div class="px-6 pt-5 pb-4">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-3">
+                        <!-- Severity icon -->
+                        {% if error.severity == 'critical' %}
+                        <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background: rgba(239,68,68,0.1);">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                <path d="M8 2L14 13H2L8 2Z" stroke="#ef4444" stroke-width="1.5" stroke-linejoin="round"/>
+                                <path d="M8 6v3M8 11h.01" stroke="#ef4444" stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        {% elif error.severity == 'warning' %}
+                        <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background: rgba(245,158,11,0.1);">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                <circle cx="8" cy="8" r="6" stroke="#f59e0b" stroke-width="1.5"/>
+                                <path d="M8 5v3M8 11h.01" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        {% else %}
+                        <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background: rgba(59,130,246,0.1);">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                <circle cx="8" cy="8" r="6" stroke="#3b82f6" stroke-width="1.5"/>
+                                <path d="M8 7v4M8 5h.01" stroke="#3b82f6" stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        {% endif %}
+
+                        <h3 class="mono font-bold text-base" style="color: var(--text-primary);">{{ error.error_type }}</h3>
+                    </div>
+
+                    <!-- Severity badge -->
+                    {% if error.severity == 'critical' %}
+                    <span class="mono text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full badge-critical">Critical</span>
+                    {% elif error.severity == 'warning' %}
+                    <span class="mono text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full badge-warning">Warning</span>
+                    {% else %}
+                    <span class="mono text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full badge-info">Info</span>
+                    {% endif %}
+                </div>
+
+                <!-- What happened -->
+                <div class="mb-4">
+                    <div class="flex items-center gap-2 mb-1.5">
+                        <span class="mono text-xs font-semibold uppercase tracking-wider" style="color: var(--text-muted);">What happened</span>
+                    </div>
+                    <p class="text-sm leading-relaxed" style="color: var(--text-secondary);">{{ error.what_happened }}</p>
+                </div>
+
+                <!-- Why it happened -->
+                <div class="mb-4">
+                    <div class="flex items-center gap-2 mb-1.5">
+                        <span class="mono text-xs font-semibold uppercase tracking-wider" style="color: var(--text-muted);">Root cause</span>
+                    </div>
+                    <p class="text-sm leading-relaxed" style="color: var(--text-secondary);">{{ error.why_it_happened }}</p>
+                </div>
+
+                <!-- How to fix - highlighted -->
+                <div class="fix-section p-4 mb-4">
+                    <div class="flex items-center gap-2 mb-2">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                            <path d="M7 1v2M7 11v2M1 7h2M11 7h2M3 3l1.5 1.5M9.5 9.5L11 11M3 11l1.5-1.5M9.5 4.5L11 3" stroke="#3b82f6" stroke-width="1.2" stroke-linecap="round"/>
+                        </svg>
+                        <span class="mono text-xs font-bold uppercase tracking-wider" style="color: var(--accent-blue);">How to fix</span>
+                    </div>
+                    <p class="text-sm leading-relaxed" style="color: var(--text-primary);">{{ error.how_to_fix }}</p>
+                </div>
+
+                <!-- Log lines toggle -->
+                {% if error.relevant_log_lines and error.relevant_log_lines | length > 0 %}
+                <button class="toggle-btn" @click="open = !open">
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" :style="open ? 'transform: rotate(90deg)' : ''" style="transition: transform 0.2s;">
+                        <path d="M4 2l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span x-text="open ? 'Hide log lines' : 'Show relevant log lines (' + {{ error.relevant_log_lines | length }} + ')'"></span>
+                </button>
+
+                <div x-show="open" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" class="mt-3">
+                    <div class="log-block p-4 overflow-x-auto">
+                        {% for line in error.relevant_log_lines %}
+                        <div class="py-0.5 {% if loop.index > 1 %}border-t border-gray-800{% endif %}">
+                            <span style="color: var(--text-muted);">{{ loop.index }}</span>
+                            <span class="ml-3">{{ line }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+
+        <!-- FOOTER -->
+        <div class="mt-10 pt-6 section-divider"></div>
+        <div class="flex items-center justify-between py-4 fade-in">
+            <div class="flex items-center gap-2">
+                <span class="text-xs" style="color: var(--text-muted);">Powered by</span>
+                <span class="mono text-xs font-semibold" style="color: var(--accent-blue);">Amazon Nova 2 Lite</span>
+                <span class="text-xs" style="color: var(--text-muted);">via Amazon Bedrock</span>
+            </div>
+            <div class="mono text-xs" style="color: var(--text-muted);">
+                LambdaLens · {{ metadata.region }}
+            </div>
+        </div>
+
+    </main>
+
+</body>
+</html>
