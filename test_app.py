@@ -20,4 +20,4 @@ for error in result['errors']:
     print(f"  Why: {error['why_it_happened']}")
     print(f"  Fix: {error['how_to_fix']}")
 
-start_server(result)
+start_server(result, data['metadata'])
