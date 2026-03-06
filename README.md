@@ -80,4 +80,4 @@ aws_nova_project/
 
 ## License
 
-Use and modify as needed for your project.
+MIT License
