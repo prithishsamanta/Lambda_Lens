@@ -1,4 +1,4 @@
-# AWS Nova Lambda Debugger
+# AWS Nova Lambda Debugger (Lambda Lens)
 
 Analyze AWS Lambda CloudWatch logs using **AWS Bedrock Nova 2 Lite**. Fetches function metadata and recent logs, runs an AI-powered diagnosis, and opens an HTML report in your browser.
 
