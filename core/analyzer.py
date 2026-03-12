@@ -54,7 +54,10 @@ def build_prompt(metadata: dict, log_text: str) -> str:
                 "error_type": "short name of the error",
                 "what_happened": "plain english explanation of what went wrong",
                 "why_it_happened": "root cause explanation",
-                "how_to_fix": "specific actionable steps to fix this",
+                "fix": {{
+                    "explanation": "specific actionable steps to fix this in plain english",
+                    "generated": "ready to use fix — corrected code pattern in the function runtime language based on the stack trace, exact IAM policy JSON, or specific configuration values depending on error type"
+                }},
                 "severity": "critical or warning or info",
                 "relevant_log_lines": ["exact log line 1", "exact log line 2"]
             }}

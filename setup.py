@@ -11,6 +11,7 @@ setup(
         'fastapi',
         'uvicorn',
         'jinja2',
+        'click'
     ],
     entry_points={
         'console_scripts': [
