@@ -394,7 +394,16 @@
                         </svg>
                         <span class="mono text-xs font-bold uppercase tracking-wider" style="color: var(--accent-blue);">How to fix</span>
                     </div>
-                    <p class="text-sm leading-relaxed" style="color: var(--text-primary);">{{ error.how_to_fix }}</p>
+                    <p class="text-sm leading-relaxed mb-3" style="color: var(--text-primary);">{{ error.fix.explanation }}</p>
+                    
+                    {% if error.fix.generated %}
+                    <div class="mt-3">
+                        <div class="mono text-xs mb-2 font-semibold" style="color: var(--text-muted);">GENERATED FIX</div>
+                        <div class="log-block p-4 overflow-x-auto">
+                            <pre class="text-xs leading-relaxed" style="color: #8fb3d9; white-space: pre-wrap;">{{ error.fix.generated }}</pre>
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
 
                 <!-- Log lines toggle -->
