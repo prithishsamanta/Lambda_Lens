@@ -2,7 +2,7 @@
 
 > Stop staring at CloudWatch logs. Let AI tell you exactly what went wrong and how to fix it.
 
-LambdaLens is a CLI tool that automatically fetches your AWS Lambda CloudWatch logs, sends them to **Amazon Nova 2 Lite** via Amazon Bedrock for analysis, and opens a beautiful diagnostic report in your browser — all with a single command.
+LambdaLens is a CLI tool that automatically fetches your AWS Lambda CloudWatch logs, sends them to **Amazon Nova 2 Lite** via Amazon Bedrock for analysis, and opens a beautiful diagnostic report in your browser, all with a single command.
 
 Built for the **Amazon Nova AI Hackathon** 
 
@@ -73,7 +73,7 @@ server/templates/report.html
 ## Prerequisites
 
 - Python 3.10+
-- **AWS credentials configured** — LambdaLens uses your AWS credentials to call Lambda, CloudWatch, and Bedrock. Configure them via the AWS CLI:
+- **AWS credentials configured**: LambdaLens uses your AWS credentials to call Lambda, CloudWatch, and Bedrock. Configure them via the AWS CLI:
   ```bash
   aws configure
   ```
@@ -275,7 +275,7 @@ Contributions are welcome. Please open an issue first to discuss what you'd like
 
 ## License
 
-This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License, see the [LICENSE](LICENSE) file for details.
 
 ---
 
@@ -289,8 +289,8 @@ Built with Amazon Nova 2 Lite for the Amazon Nova AI Hackathon.
 
 ## Acknowledgements
 
-- [Amazon Nova](https://aws.amazon.com/ai/nova/) — for the powerful reasoning model
-- [Amazon Bedrock](https://aws.amazon.com/bedrock/) — for the managed AI infrastructure
-- [boto3](https://boto3.amazonaws.com/v1/documentation/api/latest/index.html) — for the excellent AWS SDK
-- [FastAPI](https://fastapi.tiangolo.com/) — for the lightweight local server
-- [Rich](https://rich.readthedocs.io/) — for the beautiful terminal output
+- [Amazon Nova](https://aws.amazon.com/ai/nova/), for the powerful reasoning model
+- [Amazon Bedrock](https://aws.amazon.com/bedrock/), for the managed AI infrastructure
+- [boto3](https://boto3.amazonaws.com/v1/documentation/api/latest/index.html), for the excellent AWS SDK
+- [FastAPI](https://fastapi.tiangolo.com/), for the lightweight local server
+- [Rich](https://rich.readthedocs.io/), for the beautiful terminal output
