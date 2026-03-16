@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Request
+from fastapi.responses import Response
 from fastapi.templating import Jinja2Templates
 import webbrowser
 import threading
@@ -11,6 +12,13 @@ report_metadata = {}
 templates = Jinja2Templates(directory="server/templates")
 
 app = FastAPI()
+
+
+@app.get("/favicon.ico")
+def favicon():
+    """Avoid 404 when the browser requests a tab icon."""
+    return Response(status_code=204)
+
 
 def start_server(diagnosis: dict, metadata: dict):
     global diagnosis_data, report_metadata

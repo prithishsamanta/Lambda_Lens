@@ -20,6 +20,49 @@ bedrock_client = boto3.client(
 console = Console()
 
 
+def _sanitize_json_string(s: str) -> str:
+    """
+    Replace literal newlines and other control chars inside JSON string values
+    with their escaped form. Nova sometimes returns these, which makes json.loads() fail.
+    """
+    result = []
+    i = 0
+    in_string = False
+    escape_next = False
+    while i < len(s):
+        c = s[i]
+        if escape_next:
+            result.append(c)
+            escape_next = False
+            i += 1
+            continue
+        if in_string and c == "\\":
+            result.append(c)
+            escape_next = True
+            i += 1
+            continue
+        if c == '"' and not escape_next:
+            in_string = not in_string
+            result.append(c)
+            i += 1
+            continue
+        if in_string and c == "\n":
+            result.append("\\n")
+            i += 1
+            continue
+        if in_string and c == "\r":
+            result.append("\\r")
+            i += 1
+            continue
+        if in_string and ord(c) < 32:
+            result.append(f"\\u{ord(c):04x}")
+            i += 1
+            continue
+        result.append(c)
+        i += 1
+    return "".join(result)
+
+
 # create a prompt which will then be sent to analyze logs to call AWS Nova Lite API with the log
 def build_prompt(metadata: dict, log_text: str) -> str:
     """
@@ -101,6 +144,9 @@ def analyze_logs(metadata: dict, log_text: str) -> dict:
             if lines and lines[-1].strip() == "```":
                 lines = lines[:-1]
             nova_response_text = "\n".join(lines)
+
+        # Nova sometimes puts literal newlines inside string values; JSON requires \n. Sanitize first.
+        nova_response_text = _sanitize_json_string(nova_response_text)
 
         # parse the JSON response from Nova
         diagnosis = json.loads(nova_response_text)
