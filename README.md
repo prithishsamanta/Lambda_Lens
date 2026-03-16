@@ -13,7 +13,7 @@ Built for the **Amazon Nova AI Hackathon**
 ```
 $ lambda-debug --function my-api-handler --region us-east-2 --hours 24
 
-⚡ LambdaLens — AI-Powered Lambda Debugger
+⚡ LambdaLens: AI-Powered Lambda Debugger
 Analyzing function: my-api-handler in us-east-2
 
 Fetching Lambda logs and metadata...
@@ -33,13 +33,13 @@ Your browser opens automatically at `http://localhost:8000/report` showing a ful
 
 ## Features
 
-- **One command debugging** — point it at any Lambda function and get instant AI-powered diagnosis
-- **Powered by Amazon Nova 2 Lite** — advanced reasoning model identifies root causes, not just error names
-- **Beautiful visual report** — dark-themed dashboard with color-coded severity cards opens automatically in your browser
-- **Specific actionable fixes** — not generic advice, but exact steps tailored to your function's configuration and actual log lines
-- **Zero extra setup** — uses your existing AWS credentials, no API keys or logins needed
-- **Privacy first** — your logs never leave your machine except to AWS APIs you already use
-- **Works with any Lambda** — runtime agnostic, works with Python, Node.js, Java, Go, and more
+- **One command debugging**: point it at any Lambda function and get instant AI-powered diagnosis
+- **Powered by Amazon Nova 2 Lite**: advanced reasoning model identifies root causes, not just error names
+- **Beautiful visual report**: dark-themed dashboard with color-coded severity cards opens automatically in your browser
+- **Specific actionable fixes**: not generic advice, but exact steps tailored to your function's configuration and actual log lines
+- **Zero extra setup** :uses your existing AWS credentials, no API keys or logins needed
+- **Privacy first**: your logs never leave your machine except to AWS APIs you already use
+- **Works with any Lambda**: runtime agnostic, works with Python, Node.js, Java, Go, and more
 
 ---
 
@@ -73,8 +73,11 @@ server/templates/report.html
 ## Prerequisites
 
 - Python 3.10+
-- AWS CLI installed and configured (`aws configure`)
-- AWS account with access to:
+- **AWS credentials configured** — LambdaLens uses your AWS credentials to call Lambda, CloudWatch, and Bedrock. Configure them via the AWS CLI:
+  ```bash
+  aws configure
+  ```
+  You'll need an AWS account with access to:
   - AWS Lambda
   - Amazon CloudWatch Logs
   - Amazon Bedrock (Nova 2 Lite model)
@@ -110,13 +113,15 @@ pip install -e .
 
 This installs all dependencies and registers the `lambda-debug` command globally in your terminal.
 
-**4. Configure AWS credentials (if not already done)**
+**4. Configure AWS credentials (required for the tool to work)**
+
+LambdaLens needs your AWS credentials to fetch Lambda metadata, CloudWatch logs, and to call Bedrock. If you haven't already:
 
 ```bash
 aws configure
 ```
 
-You'll need:
+Provide:
 - AWS Access Key ID
 - AWS Secret Access Key
 - Default region (e.g. `us-east-2`)
@@ -178,10 +183,10 @@ The report opens automatically in your browser and includes:
 
 **Error Cards** (one per detected issue)
 - Error type with severity badge (Critical / Warning / Info)
-- **What happened** — plain English explanation
-- **Root cause** — why it happened
-- **How to fix** — ready-to-use fixes: corrected code patterns, exact IAM policy JSON, or specific configuration changes depending on the error type
-- **Relevant log lines** — collapsible section showing exact log lines that triggered the error
+- **What happened**: plain English explanation
+- **Root cause**: why it happened
+- **How to fix**: ready-to-use fixes: corrected code patterns, exact IAM policy JSON, or specific configuration changes depending on the error type
+- **Relevant log lines**: collapsible section showing exact log lines that triggered the error
 
 ---
 
@@ -239,20 +244,20 @@ Lambda_Lens/                 # or your clone directory
 
 ## What's Next
 
-- **Multi-function fleet analysis** — Analyze all Lambda functions in your account at once and get a health dashboard ranked by severity.
-- **Beyond Lambda** — Extend the same AI-powered diagnosis to other CloudWatch log sources (API Gateway, RDS, ECS, etc.).
-- **CI/CD integration** — Run LambdaLens in your deployment pipeline to catch issues before they reach users.
-- **IDE plugin** — Bring the same debugging intelligence into VS Code so you never leave your editor.
+- **Multi-function fleet analysis**: Analyze all Lambda functions in your account at once and get a health dashboard ranked by severity.
+- **Beyond Lambda**: Extend the same AI-powered diagnosis to other CloudWatch log sources (API Gateway, RDS, ECS, etc.).
+- **CI/CD integration**: Run LambdaLens in your deployment pipeline to catch issues before they reach users.
+- **IDE plugin**: Bring the same debugging intelligence into VS Code so you never leave your editor.
 
 ---
 
 ## Privacy & Security
 
-- **No data storage** — logs are fetched, analyzed, and displayed in memory only
-- **No external transmission** — your logs only go to AWS APIs (Lambda, CloudWatch, Bedrock) that you already use
-- **Uses existing credentials** — no new API keys or accounts needed
-- **Local report** — the report is served locally on your machine only, never hosted externally
-- **Credentials never touched** — LambdaLens uses boto3's standard credential chain, never reads or stores your AWS keys directly
+- **No data storage**: logs are fetched, analyzed, and displayed in memory only
+- **No external transmission**: your logs only go to AWS APIs (Lambda, CloudWatch, Bedrock) that you already use
+- **Uses existing credentials**: no new API keys or accounts needed
+- **Local report**: the report is served locally on your machine only, never hosted externally
+- **Credentials never touched**: LambdaLens uses boto3's standard credential chain, never reads or stores your AWS keys directly
 
 ---
 
