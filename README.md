@@ -1,4 +1,4 @@
-# LambdaLens — AI-Powered AWS Lambda Debugger
+# LambdaLens: An AI-Powered AWS Lambda Debugger
 
 > Stop staring at CloudWatch logs. Let AI tell you exactly what went wrong and how to fix it.
 
