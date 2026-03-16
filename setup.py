@@ -21,7 +21,7 @@ setup(
     description='AI-Powered Lambda Debugger',
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
-    url='https://github.com/yourusername/lambda-debug',
+    url='https://github.com/prithishsamanta/Lambda_Lens',
     author='Prithish Samanta',
     author_email='prithishsamanta@gmail.com',
     classifiers=[

@@ -180,7 +180,7 @@ The report opens automatically in your browser and includes:
 - Error type with severity badge (Critical / Warning / Info)
 - **What happened** — plain English explanation
 - **Root cause** — why it happened
-- **How to fix** — specific actionable steps tailored to your function
+- **How to fix** — ready-to-use fixes: corrected code patterns, exact IAM policy JSON, or specific configuration changes depending on the error type
 - **Relevant log lines** — collapsible section showing exact log lines that triggered the error
 
 ---
@@ -216,7 +216,7 @@ The report opens automatically in your browser and includes:
 ## Project Structure
 
 ```
-lambda-debug/
+Lambda_Lens/                 # or your clone directory
 ├── cli/
 │   ├── __init__.py
 │   └── main.py              # CLI entry point (lambda-debug command)
@@ -234,6 +234,15 @@ lambda-debug/
 ├── .env                     # Environment variables (not committed)
 └── README.md
 ```
+
+---
+
+## What's Next
+
+- **Multi-function fleet analysis** — Analyze all Lambda functions in your account at once and get a health dashboard ranked by severity.
+- **Beyond Lambda** — Extend the same AI-powered diagnosis to other CloudWatch log sources (API Gateway, RDS, ECS, etc.).
+- **CI/CD integration** — Run LambdaLens in your deployment pipeline to catch issues before they reach users.
+- **IDE plugin** — Bring the same debugging intelligence into VS Code so you never leave your editor.
 
 ---
 
